@@ -1,0 +1,12 @@
+# Local development configuration for Nakama.
+# This file is mounted by docker-compose for local runs only.
+# Production should use environment-injected values and a separate config.
+
+name: "nakama1"
+data_dir: "./data"
+logger:
+  level: "INFO"
+runtime:
+  js_entrypoint: "index.js"
+session:
+  token_expiry_sec: 7200

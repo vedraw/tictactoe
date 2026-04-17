@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:14.12-alpine
+    container_name: ttt-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nakama}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localdb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  nakama:
+    image: heroiclabs/nakama:3.22.0
+    container_name: ttt-nakama
+    depends_on:
+      - postgres
+    entrypoint:
+      - /bin/sh
+      - -ecx
+      - >
+        /nakama/nakama migrate up --database.address postgres:${POSTGRES_PASSWORD:-localdb}@postgres:5432/${POSTGRES_DB:-nakama} &&
+        exec /nakama/nakama --name nakama1 --database.address postgres:${POSTGRES_PASSWORD:-localdb}@postgres:5432/${POSTGRES_DB:-nakama} --logger.level ${NAKAMA_LOG_LEVEL:-INFO} --session.token_expiry_sec ${SESSION_TOKEN_EXPIRY_SEC:-7200} --socket.server_key ${NAKAMA_SERVER_KEY:-defaultkey} --runtime.path /nakama/data/modules --config /nakama/data/local.yml
+    restart: unless-stopped
+    ports:
+      - "7349:7349"
+      - "7350:7350"
+      - "7351:7351"
+    volumes:
+      - ../backend/modules:/nakama/data/modules
+      - ../backend/local.yml:/nakama/data/local.yml
+
+volumes:
+  postgres_data:

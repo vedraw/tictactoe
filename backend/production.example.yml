@@ -1,0 +1,14 @@
+# Example production-oriented Nakama config template.
+# Do not commit real secrets in production config files.
+
+name: "nakama-prod"
+data_dir: "./data"
+logger:
+  level: "INFO"
+runtime:
+  js_entrypoint: "index.js"
+session:
+  token_expiry_sec: 3600
+socket:
+  # Set from deployment secret manager in production.
+  server_key: "replace-with-secret"
