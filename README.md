@@ -1,1 +1,1 @@
-# lila-tictactoe
+# tictactoe
