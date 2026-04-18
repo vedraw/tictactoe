@@ -1,0 +1,50 @@
+version: "3.9"
+
+# Run from repository root (so build context resolves):
+#   cp .env.production.example .env.production
+#   # edit .env.production — set POSTGRES_PASSWORD and NAKAMA_SERVER_KEY at minimum
+#   docker compose -f infra/docker-compose.prod.yml --env-file .env.production up -d --build
+#
+# Postgres is not published to the host. Only Nakama HTTP/WebSocket (7350) is exposed.
+
+services:
+  postgres:
+    image: postgres:14.12-alpine
+    container_name: ttt-postgres-prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nakama}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.production}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  nakama:
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    image: ttt-nakama-prod:3.22.0
+    container_name: ttt-nakama-prod
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nakama}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.production}
+      NAKAMA_SERVER_KEY: ${NAKAMA_SERVER_KEY:?set NAKAMA_SERVER_KEY in .env.production}
+      NAKAMA_HTTP_KEY: ${NAKAMA_HTTP_KEY:-defaulthttpkey}
+      NAKAMA_LOG_LEVEL: ${NAKAMA_LOG_LEVEL:-WARN}
+      SESSION_TOKEN_EXPIRY_SEC: ${SESSION_TOKEN_EXPIRY_SEC:-3600}
+    entrypoint:
+      - /bin/sh
+      - -ecx
+      - >
+        /nakama/nakama migrate up --database.address postgres:$${POSTGRES_PASSWORD}@postgres:5432/$${POSTGRES_DB} &&
+        exec /nakama/nakama --name nakama1 --database.address postgres:$${POSTGRES_PASSWORD}@postgres:5432/$${POSTGRES_DB} --logger.level $${NAKAMA_LOG_LEVEL} --session.token_expiry_sec $${SESSION_TOKEN_EXPIRY_SEC} --socket.server_key $${NAKAMA_SERVER_KEY} --runtime.http_key $${NAKAMA_HTTP_KEY} --runtime.path /nakama/data/modules --config /nakama/data/nakama.prod.yml
+    restart: unless-stopped
+    ports:
+      - "7350:7350"
+    volumes:
+      - ../backend/nakama.prod.yml:/nakama/data/nakama.prod.yml:ro
+
+volumes:
+  postgres_data_prod:
