@@ -1,0 +1,9 @@
+# Committed Nakama runtime settings for Docker prod (no secrets).
+# socket.server_key and DB credentials come from docker-compose entrypoint / env.
+
+name: "nakama1"
+data_dir: "./data"
+logger:
+  level: "WARN"
+session:
+  token_expiry_sec: 3600
