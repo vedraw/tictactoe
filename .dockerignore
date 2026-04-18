@@ -1,0 +1,9 @@
+# Docker Compose builds Nakama with context = repo root (`infra/docker-compose.local.yml`).
+# Keep the build context small and avoid accidentally baking tooling trees into images.
+
+.git
+**/.git
+.cursor
+**/.cursor
+
+**/node_modules

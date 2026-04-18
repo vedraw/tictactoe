@@ -13,7 +13,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   nakama:
-    image: heroiclabs/nakama:3.22.0
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    image: ttt-nakama-local:3.22.0
     container_name: ttt-nakama
     depends_on:
       - postgres
@@ -29,7 +33,6 @@ services:
       - "7350:7350"
       - "7351:7351"
     volumes:
-      - ../backend/modules:/nakama/data/modules
       - ../backend/local.yml:/nakama/data/local.yml
 
 volumes:
