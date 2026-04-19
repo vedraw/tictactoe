@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Client } from "@heroiclabs/nakama-js";
 import { friendlyMatchErrorCode, friendlyRpcErrorCode } from "./errorCopy.js";
 
+var nakamaUseSsl = (import.meta.env.VITE_NAKAMA_SSL || "false") === "true";
+
 var client = new Client(
   import.meta.env.VITE_NAKAMA_SERVER_KEY || "defaultkey",
   import.meta.env.VITE_NAKAMA_HOST || "127.0.0.1",
   import.meta.env.VITE_NAKAMA_PORT || "7350",
-  (import.meta.env.VITE_NAKAMA_SSL || "false") === "true"
+  nakamaUseSsl
 );
 client.timeout = 10000;
 
@@ -321,7 +323,7 @@ function App() {
         return;
       }
       var nextSession = await client.authenticateDevice(getDeviceId(), true, safeUsername);
-      var nextSocket = client.createSocket(false, false);
+      var nextSocket = client.createSocket(nakamaUseSsl, false);
       attachSocketHandlers(nextSocket);
       await nextSocket.connect(nextSession, true);
       setSession(nextSession);
@@ -343,7 +345,7 @@ function App() {
     try {
       setError("");
       setConnecting(true);
-      var nextSocket = client.createSocket(false, false);
+      var nextSocket = client.createSocket(nakamaUseSsl, false);
       attachSocketHandlers(nextSocket);
       await nextSocket.connect(session, true);
       setSocket(nextSocket);
